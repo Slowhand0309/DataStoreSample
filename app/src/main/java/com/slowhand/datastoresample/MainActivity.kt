@@ -16,6 +16,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.slowhand.datastoresample.model.settingsDataStore
 import com.slowhand.datastoresample.ui.theme.DataStoreSampleTheme
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
@@ -45,12 +46,29 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        GlobalScope.launch {
+            incrementCounter(this@MainActivity)
+            val exampleCounterFlow: Flow<Int> = settingsDataStore.data
+                .map { settings ->
+                    settings.exampleCounter
+                }
+            exampleCounterFlow.collect { Log.d("DataStore", "counter = $it")}
+        }
     }
 }
 
 suspend fun saveText(context: Context, text: String) {
     context.dataStore.edit { settings ->
         settings[TEXT_KEY] = text
+    }
+}
+
+suspend fun incrementCounter(context: Context) {
+    context.settingsDataStore.updateData { currentSettings ->
+        currentSettings.toBuilder()
+            .setExampleCounter(currentSettings.exampleCounter + 1)
+            .build()
     }
 }
 
